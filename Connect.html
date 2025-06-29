@@ -1,0 +1,523 @@
+<!--- A Connect Four Game is used to create using HTMl CSS and Java Script -->  
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Four Game</title>
+    <style>
+        :root {
+            --yellow: #FFD700;
+            --red: #FF6B6B;
+            --blue: #4ECDC4;
+            --white: #F8F8FF;
+            --black: #2D3436;
+            --board-color: #8a2be2;
+            --board-bg: #6a1b9a;
+            --active-player: #00B894;
+            --title-gradient: linear-gradient(45deg, #FF6B6B, #6a3dc8, #4ECDC4);
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 100%);
+            color: var(--black);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 3rem;
+            color: #006400;
+            text-shadow: 1px 1px 3px rgba(255,255,255,0.3);
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 10px;
+        }
+
+        .player {
+            text-align: center;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 45%;
+            background: linear-gradient(145deg, #e0e0e0, #ffffff);
+            box-shadow: 4px 4px 8px rgba(0,0,0,0.1),
+                       -4px -4px 8px rgba(255,255,255,0.8);
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .player.active {
+            background: linear-gradient(145deg, #6a3dc8, #8a2be2);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(138,43,226,0.3);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .player.red {
+            background: linear-gradient(145deg, #ff8a8a, #FF6B6B);
+        }
+
+        .player.yellow {
+            background: linear-gradient(145deg, #ffec8a, #FFD700);
+        }
+
+        .player:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .player:active {
+            transform: translateY(1px);
+        }
+
+        .board-container {
+            position: relative;
+            background: var(--board-bg);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 
+                0 10px 20px rgba(106, 27, 154, 0.5),
+                inset 0 0 15px rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-gap: 10px;
+            position: relative;
+            background: transparent;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #F8F8FF; /* ghostwhite */
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+            border: 2px solid #6C5CE7;
+        }
+
+        @media (max-width: 500px) {
+            .cell {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        .cell::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            z-index: 2;
+        }
+
+        .cell:hover::before {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .cell.red {
+            background-color: var(--red);
+            border-color: #c0392b;
+        }
+
+        .cell.yellow {
+            background-color: var(--yellow);
+            border-color: #f39c12;
+        }
+
+        .column-indicator {
+            position: absolute;
+            top: -40px;
+            width: 60px;
+            height: 20px;
+            text-align: center;
+            color: var(--black);
+            font-weight: bold;
+        }
+
+        @media (max-width: 500px) {
+            .column-indicator {
+                width: 40px;
+                font-size: 0.8rem;
+            }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button, #reset-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #7b1fa2;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover, #reset-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+            background-color: #6a3dc8;
+        }
+
+        #reset-btn:hover::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            transform: scale(25);
+            opacity: 0;
+            transition: transform 0.6s, opacity 1s;
+        }
+
+        #reset-btn:active {
+            transform: translateY(-1px) scale(0.98);
+            transition: all 0.1s;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .win-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #F8F8FF;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .win-message.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .win-message h2 {
+            margin-top: 0;
+            color: var(--blue);
+        }
+
+        .win-message button {
+            margin-top: 20px;
+            background-color: #8a2be2;
+        }
+
+        .token-drop {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            top: 0;
+            left: 0;
+            z-index: 5;
+            animation: dropAnimation 0.5s forwards;
+            transform-origin: center;
+        }
+
+        @media (max-width: 500px) {
+            .token-drop {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @keyframes dropAnimation {
+            0% {
+                transform: translateY(-500px) scale(0.5);
+                opacity: 0;
+            }
+            70% {
+                transform: translateY(0) scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .signature {
+            margin-top: 30px;
+            font-family: 'Arial', sans-serif;
+            color: #808080;
+            opacity: 0.8;
+            font-size: 1rem;
+            text-align: center;
+            padding: 10px 0;
+        }
+        
+        .version {
+            margin-top: 10px;
+            font-family: 'Arial', sans-serif;
+            color: #606060;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Connect Four</h1>
+    <div class="game-container">
+        <div class="player-info">
+            <div class="player red active" id="player1">
+                Player 1 (Red)
+            </div>
+            <div class="player yellow" id="player2">
+                Player 2 (Yellow)
+            </div>
+        </div>
+        <div class="board-container">
+            <div class="column-indicators">
+                <div class="column-indicator">1</div>
+                <div class="column-indicator">2</div>
+                <div class="column-indicator">3</div>
+                <div class="column-indicator">4</div>
+                <div class="column-indicator">5</div>
+                <div class="column-indicator">6</div>
+                <div class="column-indicator">7</div>
+            </div>
+            <div class="board" id="board"></div>
+        </div>
+        <div class="controls">
+            <button id="reset-btn">Reset Game</button>
+        </div>
+    </div>
+    <div class="win-message" id="win-message">
+        <h2 id="win-text">Player 1 (Red) Wins!</h2>
+        <button id="play-again-btn">Play Again</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('board');
+            const player1 = document.getElementById('player1');
+            const player2 = document.getElementById('player2');
+            const resetBtn = document.getElementById('reset-btn');
+            const winMessage = document.getElementById('win-message');
+            const winText = document.getElementById('win-text');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            
+            const ROWS = 6;
+            const COLS = 7;
+            let currentPlayer = 1; // 1 for player 1 (Red), 2 for player 2 (Yellow)
+            let gameBoard = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+            let isGameOver = false;
+
+            // Create the game board
+            function createBoard() {
+                board.innerHTML = '';
+                
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('cell');
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        board.appendChild(cell);
+                    }
+                }
+            }
+
+            // Handle player move
+            function handleMove(col) {
+                if (isGameOver) return;
+                
+                // Find the first empty row in the column (left-to-right, top-to-bottom)
+                for (let row = 0; row < ROWS; row++) {
+                    if (gameBoard[row][col] === 0) {
+                        // Create a dropping animation
+                        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                        const token = document.createElement('div');
+                        token.classList.add('token-drop');
+                        token.style.backgroundColor = currentPlayer === 1 ? '#eb4d4b' : '#f9ca24';
+                        token.style.left = `${col * 70}px`;
+                        token.style.top = `${row * 70}px`;
+                        
+                        board.appendChild(token);
+                        
+                        setTimeout(() => {
+                            token.remove();
+                            gameBoard[row][col] = currentPlayer;
+                            cell.classList.add(currentPlayer === 1 ? 'red' : 'yellow');
+                            
+                            if (checkWin(row, col)) {
+                                endGame(currentPlayer === 1 ? 'Player 1 (Red)' : 'Player 2 (Yellow)');
+                            } else if (isBoardFull()) {
+                                endGame('draw');
+                            } else {
+                                switchPlayer();
+                            }
+                        }, 500);
+                        
+                        return;
+                    }
+                }
+            }
+
+            // Check for a winning condition
+            function checkWin(row, col) {
+                const directions = [
+                    [0, 1],  // horizontal
+                    [1, 0],  // vertical
+                    [1, 1],  // diagonal down-right
+                    [1, -1]  // diagonal down-left
+                ];
+                
+                const player = gameBoard[row][col];
+                
+                for (const [dx, dy] of directions) {
+                    let count = 1;
+                    
+                    // Check in positive direction
+                    for (let i = 1; i < 4; i++) {
+                        const r = row + i * dx;
+                        const c = col + i * dy;
+                        
+                        if (r >= 0 && r < ROWS && c >= 0 && c < COLS && gameBoard[r][c] === player) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // Check in negative direction
+                    for (let i = 1; i < 4; i++) {
+                        const r = row - i * dx;
+                        const c = col - i * dy;
+                        
+                        if (r >= 0 && r < ROWS && c >= 0 && c < COLS && gameBoard[r][c] === player) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    if (count >= 4) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+
+            // Check if the board is full (draw)
+            function isBoardFull() {
+                return gameBoard.every(row => row.every(cell => cell !== 0));
+            }
+
+            // Switch players
+            function switchPlayer() {
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                player1.classList.toggle('active');
+                player2.classList.toggle('active');
+            }
+
+            // End the game
+            function endGame(winner) {
+                isGameOver = true;
+                
+                if (winner === 'draw') {
+                    winText.textContent = "It's a Draw!";
+                } else {
+                    winText.textContent = `${winner} Wins!`;
+                }
+                
+                winMessage.classList.add('show');
+            }
+
+            // Reset the game
+            function resetGame() {
+                gameBoard = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+                currentPlayer = 1;
+                isGameOver = false;
+                
+                player1.classList.add('active');
+                player2.classList.remove('active');
+                
+                winMessage.classList.remove('show');
+                
+                createBoard();
+            }
+
+            // Initialize the game
+            function init() {
+                createBoard();
+                
+                // Event listener for clicking on a column
+                board.addEventListener('click', (e) => {
+                    const cell = e.target.closest('.cell');
+                    if (!cell) return;
+                    
+                    const col = parseInt(cell.dataset.col);
+                    handleMove(col);
+                });
+                
+                // Event listener for reset button
+                resetBtn.addEventListener('click', resetGame);
+                
+                // Event listener for play again button
+                playAgainBtn.addEventListener('click', resetGame);
+            }
+
+            init();
+        });
+    </script>
+    <div class="signature">Made with Love by liponkoch</div>
+    <div class="version">Version 1.0</div>
+</body>
+</html>
+
+
